@@ -10,6 +10,9 @@ hand-labeled answer key. Then it ranks prompts on a leaderboard.
 
 Runs entirely locally on Ollama. No API keys, no cost.
 
+> **New here?** [**WALKTHROUGH.md**](WALKTHROUGH.md) explains every file in
+> plain language, plus the three bugs this harness caught in its own answer key.
+
 ## The headline result
 
 Three prompts, same model (`llama3.2`), same 10 questions, temperature 0:
