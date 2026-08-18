@@ -1,0 +1,43 @@
+id,question,predicted_sql,gold_sql,strict,subset,reason
+1,How many customers are there?,"SELECT COUNT(*) 
+FROM customers",SELECT COUNT(*) FROM customers,True,True,match
+2,List the names of all customers in Atlanta.,"SELECT name 
+FROM customers 
+WHERE city = 'Atlanta'",SELECT name FROM customers WHERE city = 'Atlanta',True,True,match
+3,What is the most expensive product?,"SELECT name, price
+FROM products
+ORDER BY price DESC
+LIMIT 1",SELECT name FROM products ORDER BY price DESC LIMIT 1,False,True,"subset match (1 extra column(s)): got [('Espresso Machine', 499.0)]"
+4,How many orders were cancelled?,"SELECT COUNT(*) 
+FROM orders 
+WHERE status = 'cancelled'",SELECT COUNT(*) FROM orders WHERE status = 'cancelled',True,True,match
+5,Which customers have placed at least one order? Give their names.,"SELECT c.name 
+FROM customers c 
+JOIN orders o ON c.id = o.customer_id 
+GROUP BY c.name 
+HAVING COUNT(o.id) > 0",SELECT DISTINCT c.name FROM customers c JOIN orders o ON o.customer_id = c.id,True,True,match
+6,What is the total revenue from shipped orders?,"SELECT SUM(oi.quantity * pi.price) AS total_revenue
+FROM order_items oi
+JOIN products pi ON oi.product_id = pi.id
+JOIN orders o ON oi.order_id = o.id
+WHERE o.status = 'shipped'",SELECT SUM(p.price * oi.quantity) FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id WHERE o.status = 'shipped',True,True,match
+7,How many products are in each category?,"SELECT 
+    p.category,
+    COUNT(DISTINCT p.id) AS num_products_in_category
+FROM 
+    products p
+GROUP BY 
+    p.category","SELECT category, COUNT(*) FROM products GROUP BY category",True,True,match
+8,Which product has been ordered in the largest total quantity?,"SELECT p.name, SUM(oi.quantity) as total_quantity
+FROM products p
+JOIN order_items oi ON p.id = oi.product_id
+GROUP BY p.id
+ORDER BY total_quantity DESC",SELECT p.name FROM products p JOIN order_items oi ON oi.product_id = p.id GROUP BY p.id ORDER BY SUM(oi.quantity) DESC LIMIT 1,False,False,"wrong rows: got [('Ethiopia Beans', 8), ('Ceramic Mug', 6), ('Colombia Beans', 4)] want [('Ethiopia Beans',)]"
+9,List all customers who have never placed an order.,"SELECT c.*
+FROM customers c
+LEFT JOIN orders o ON c.id = o.customer_id
+WHERE o.id IS NULL",SELECT name FROM customers WHERE id NOT IN (SELECT customer_id FROM orders),False,True,"subset match (3 extra column(s)): got [(7, 'Grace Lund', 'Atlanta', '2024-07-22')]"
+10,"List the cities ordered by how many customers signed up from each, highest first.","SELECT city, COUNT(*) as customer_count
+FROM customers
+GROUP BY city
+ORDER BY customer_count DESC",SELECT city FROM customers GROUP BY city ORDER BY COUNT(*) DESC,False,True,"subset match (1 extra column(s)): got [('Atlanta', 4), ('Chicago', 2)]"

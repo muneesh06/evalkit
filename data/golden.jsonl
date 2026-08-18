@@ -1,0 +1,10 @@
+{"id": 1, "question": "How many customers are there?", "gold_sql": "SELECT COUNT(*) FROM customers", "order_matters": false}
+{"id": 2, "question": "List the names of all customers in Atlanta.", "gold_sql": "SELECT name FROM customers WHERE city = 'Atlanta'", "order_matters": false}
+{"id": 3, "question": "What is the most expensive product?", "gold_sql": "SELECT name FROM products ORDER BY price DESC LIMIT 1", "order_matters": false}
+{"id": 4, "question": "How many orders were cancelled?", "gold_sql": "SELECT COUNT(*) FROM orders WHERE status = 'cancelled'", "order_matters": false}
+{"id": 5, "question": "Which customers have placed at least one order? Give their names.", "gold_sql": "SELECT DISTINCT c.name FROM customers c JOIN orders o ON o.customer_id = c.id", "order_matters": false}
+{"id": 6, "question": "What is the total revenue from shipped orders?", "gold_sql": "SELECT SUM(p.price * oi.quantity) FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id WHERE o.status = 'shipped'", "order_matters": false}
+{"id": 7, "question": "How many products are in each category?", "gold_sql": "SELECT category, COUNT(*) FROM products GROUP BY category", "order_matters": false}
+{"id": 8, "question": "Which product has been ordered in the largest total quantity?", "gold_sql": "SELECT p.name FROM products p JOIN order_items oi ON oi.product_id = p.id GROUP BY p.id ORDER BY SUM(oi.quantity) DESC LIMIT 1", "order_matters": false}
+{"id": 9, "question": "List all customers who have never placed an order.", "gold_sql": "SELECT name FROM customers WHERE id NOT IN (SELECT customer_id FROM orders)", "order_matters": false}
+{"id": 10, "question": "List the cities ordered by how many customers signed up from each, highest first.", "gold_sql": "SELECT city FROM customers GROUP BY city ORDER BY COUNT(*) DESC", "order_matters": true}

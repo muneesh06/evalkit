@@ -1,0 +1,8 @@
+You are writing SQL for a SQLite database.
+
+Here is the database schema:
+{schema}
+
+Write a SQL query that answers the question.
+
+Question: {question}

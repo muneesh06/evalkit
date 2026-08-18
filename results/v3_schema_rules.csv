@@ -1,0 +1,23 @@
+id,question,predicted_sql,gold_sql,correct,reason,strict,subset
+1,How many customers are there?,SELECT COUNT(id) FROM customers,SELECT COUNT(*) FROM customers,True,match,True,True
+2,List the names of all customers in Atlanta.,SELECT T2.name FROM customers AS T1 INNER JOIN orders AS T2 ON T1.id = T2.customer_id WHERE T1.city = 'Atlanta',SELECT name FROM customers WHERE city = 'Atlanta',False,query failed: no such column: T2.name,False,False
+3,What is the most expensive product?,"SELECT T2.name, T2.price 
+FROM order_items AS T1 
+JOIN products AS T2 ON T1.product_id = T2.id 
+WHERE T1.quantity > 0 AND T2.price > 100 ORDER BY T2.price DESC LIMIT 1",SELECT name FROM products ORDER BY price DESC LIMIT 1,False,"subset match (1 extra column(s)): got [('Espresso Machine', 499.0)]",False,True
+4,How many orders were cancelled?,SELECT COUNT(DISTINCT o.id) FROM orders o WHERE o.status = 'cancelled',SELECT COUNT(*) FROM orders WHERE status = 'cancelled',True,match,True,True
+5,Which customers have placed at least one order? Give their names.,"SELECT T2.name 
+FROM orders AS T1 
+JOIN customers AS T2 ON T1.customer_id = T2.id",SELECT DISTINCT c.name FROM customers c JOIN orders o ON o.customer_id = c.id,False,"wrong rows: got [('Ava Patel',), ('Ava Patel',), ('Ben Ortiz',)] want [('Ava Patel',), ('Ben Ortiz',), ('Chen Wei',)]",False,False
+6,What is the total revenue from shipped orders?,"SELECT SUM(p.price * oi.quantity) FROM orders o JOIN order_items oi ON o.id = oi.order_id WHERE o.status = 'shipped' AND p.category IN ('Electronics', 'Fashion')",SELECT SUM(p.price * oi.quantity) FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id WHERE o.status = 'shipped',False,query failed: no such column: p.price,False,False
+7,How many products are in each category?,SELECT COUNT(DISTINCT T2.category) FROM order_items AS T1 INNER JOIN products AS T2 ON T1.product_id = T2.id GROUP BY T2.category,"SELECT category, COUNT(*) FROM products GROUP BY category",False,"wrong rows: got [(1,), (1,), (1,)] want [('Accessories', 2), ('Appliances', 2), ('Coffee', 2)]",False,False
+8,Which product has been ordered in the largest total quantity?,"SELECT T2.name, SUM(T3.quantity) 
+FROM order_items AS T1 
+JOIN products AS T2 ON T1.product_id = T2.id 
+JOIN orders AS T3 ON T1.order_id = T3.id 
+GROUP BY T2.name 
+ORDER BY SUM(T3.quantity) DESC LIMIT 1",SELECT p.name FROM products p JOIN order_items oi ON oi.product_id = p.id GROUP BY p.id ORDER BY SUM(oi.quantity) DESC LIMIT 1,False,query failed: no such column: T3.quantity,False,False
+9,List all customers who have never placed an order.,"SELECT name, city 
+FROM customers 
+WHERE id NOT IN (SELECT customer_id FROM orders)",SELECT name FROM customers WHERE id NOT IN (SELECT customer_id FROM orders),False,"subset match (1 extra column(s)): got [('Grace Lund', 'Atlanta')]",False,True
+10,"List the cities ordered by how many customers signed up from each, highest first.",SELECT T2.city FROM orders AS T1 INNER JOIN customers AS T2 ON T1.customer_id = T2.id GROUP BY T2.city ORDER BY COUNT(T1.id) DESC LIMIT 1,SELECT city FROM customers GROUP BY city ORDER BY COUNT(*) DESC,False,"wrong rows: got [('Atlanta',)] want [('Atlanta',), ('Chicago',), ('Seattle',)]",False,False
