@@ -137,7 +137,8 @@ Needs [Ollama](https://ollama.com) with `llama3.2` pulled.
 
 ```bash
 ollama serve                       # in another terminal
-python3 -m venv venv && ./venv/bin/pip install ollama
+ollama pull llama3.2
+python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
 ./venv/bin/python db/build_db.py
 ./venv/bin/python db/verify_golden.py   # confirm the answer key
 ./venv/bin/python test_score.py         # confirm the grader
@@ -171,3 +172,7 @@ Add a prompt by dropping a `.txt` file in `prompts/` with `{schema}` and
 - [ ] Break accuracy down by question difficulty (single-table vs multi-join)
 - [ ] Support multiple gold SQLs per question — some questions have several
       correct formulations (another idea from the IBM toolkit)
+
+## License
+
+MIT
