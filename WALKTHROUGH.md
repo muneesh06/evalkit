@@ -78,7 +78,7 @@ orders, and Atlanta has more customers than anywhere else. More on why below.
 
 ### `data/golden.jsonl` — the answer key
 
-Ten questions. For each one: the question in English, the correct SQL written
+Eleven questions. For each one: the question in English, the correct SQL written
 **by hand**, and a flag saying whether row order matters.
 
 ```json
@@ -165,13 +165,13 @@ grading separate means a scorer change is the only thing that changed.**
 
 ## The prompt everyone would bet on came last
 
-Same model, same ten questions, temperature 0:
+Same model, same eleven questions, temperature 0:
 
 | Prompt | Strict | Subset | Gap |
 |---|---:|---:|---:|
-| v2 — schema only | 60% | 90% | +3 |
-| v1 — no schema | 20% | 40% | +2 |
-| v3 — schema + rules + example | 20% | 40% | +2 |
+| v2 — schema only | 55% | 91% | +4 |
+| v1 — no schema | 18% | 36% | +2 |
+| v3 — schema + rules + example | 18% | 36% | +2 |
 
 **v3 tied with the worst prompt.** Its worked example was formatted in a style
 that nudged the model into inventing table nicknames — `T1`, `T2`, `T3` — that
@@ -192,11 +192,11 @@ contains the right answer with a spare column stuck on, so count it.
 
 Both readings are useful, and the space between them is the actual diagnosis:
 
-> **v2 scores 60% strict and 90% subset.** So three of its four failures were
+> **v2 scores 55% strict and 91% subset.** So four of its five failures were
 > correct answers formatted badly, and exactly *one* was a real mistake.
 >
-> That changes what you'd do next. At 60% you go rewrite the prompt's reasoning
-> guidance — days of work. At "90% with a formatting gap" you add one sentence
+> That changes what you'd do next. At 55% you go rewrite the prompt's reasoning
+> guidance — days of work. At "91% with a formatting gap" you add one sentence
 > about returning only the requested columns, and you're nearly done.
 >
 > **A single accuracy number hides which of those two situations you're in.**
@@ -263,11 +263,25 @@ that's the bug from war story 3, live. Then put it back.
 ./venv/bin/python test_score.py
 ```
 
-**4. Add the eleventh question.** Write one you think the model will get wrong,
+**4. Add the twelfth question.** Write one you think the model will get wrong,
 add it to `golden.jsonl` with hand-written SQL, verify it, then run. Predict the
 verdict before you look. **Being wrong about your prediction is the whole point
 of the exercise** — that gap between what you expected and what happened is
 exactly what the harness exists to show you.
+
+Q11 was added exactly this way: *"which customer has spent the most money?"* —
+three joins, a `SUM`, and only $5.50 between first and second place. The model
+got every hard part right and still scored zero on strict, because it appended
+the total:
+
+```
+wanted:  ('Farah Haddad',)
+got:     ('Farah Haddad', 648.5)
+```
+
+Adding it dropped strict from 60% to 55% and nudged subset from 90% to 91%. The
+model didn't get worse — the new question was just one more chance to format
+wrong. That's the trap a single number walks you into.
 
 ```bash
 ./venv/bin/python db/verify_golden.py

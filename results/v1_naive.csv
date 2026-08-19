@@ -1,23 +1,23 @@
-id,question,predicted_sql,gold_sql,correct,reason,strict,subset
+id,question,predicted_sql,gold_sql,strict,subset,reason
 1,How many customers are there?,"SELECT COUNT(*) 
-FROM customers",SELECT COUNT(*) FROM customers,True,match,True,True
+FROM customers",SELECT COUNT(*) FROM customers,True,True,match
 2,List the names of all customers in Atlanta.,"SELECT customer_name
 FROM customers
-WHERE city = 'Atlanta'",SELECT name FROM customers WHERE city = 'Atlanta',False,query failed: no such column: customer_name,False,False
+WHERE city = 'Atlanta'",SELECT name FROM customers WHERE city = 'Atlanta',False,False,query failed: no such column: customer_name
 3,What is the most expensive product?,"SELECT *
 FROM products
 ORDER BY price DESC
-LIMIT 1",SELECT name FROM products ORDER BY price DESC LIMIT 1,False,"subset match (3 extra column(s)): got [(1, 'Espresso Machine', 'Appliances', 499.0)]",False,True
+LIMIT 1",SELECT name FROM products ORDER BY price DESC LIMIT 1,False,True,"subset match (3 extra column(s)): got [(1, 'Espresso Machine', 'Appliances', 499.0)]"
 4,How many orders were cancelled?,"SELECT COUNT(*) 
 FROM orders 
-WHERE status = 'cancelled'",SELECT COUNT(*) FROM orders WHERE status = 'cancelled',True,match,True,True
+WHERE status = 'cancelled'",SELECT COUNT(*) FROM orders WHERE status = 'cancelled',True,True,match
 5,Which customers have placed at least one order? Give their names.,"SELECT c.name
 FROM customers c
-JOIN orders o ON c.customer_id = o.customer_id",SELECT DISTINCT c.name FROM customers c JOIN orders o ON o.customer_id = c.id,False,query failed: no such column: c.customer_id,False,False
+JOIN orders o ON c.customer_id = o.customer_id",SELECT DISTINCT c.name FROM customers c JOIN orders o ON o.customer_id = c.id,False,False,query failed: no such column: c.customer_id
 6,What is the total revenue from shipped orders?,"SELECT SUM(o.total_amount)
 FROM orders o
 JOIN order_items oi ON o.order_id = oi.order_id
-WHERE o.shipped = 1",SELECT SUM(p.price * oi.quantity) FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id WHERE o.status = 'shipped',False,query failed: no such column: o.total_amount,False,False
+WHERE o.shipped = 1",SELECT SUM(p.price * oi.quantity) FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id WHERE o.status = 'shipped',False,False,query failed: no such column: o.total_amount
 7,How many products are in each category?,"SELECT 
     c.category_name, 
     COUNT(p.product_id) AS product_count
@@ -26,17 +26,22 @@ FROM
 JOIN 
     categories c ON p.category_id = c.category_id
 GROUP BY 
-    c.category_name","SELECT category, COUNT(*) FROM products GROUP BY category",False,query failed: no such table: categories,False,False
+    c.category_name","SELECT category, COUNT(*) FROM products GROUP BY category",False,False,query failed: no such table: categories
 8,Which product has been ordered in the largest total quantity?,"SELECT p.name, SUM(o.quantity) as total_quantity
 FROM products p
 JOIN orders o ON p.id = o.product_id
 GROUP BY p.name
 ORDER BY total_quantity DESC
-LIMIT 1",SELECT p.name FROM products p JOIN order_items oi ON oi.product_id = p.id GROUP BY p.id ORDER BY SUM(oi.quantity) DESC LIMIT 1,False,query failed: no such column: o.quantity,False,False
+LIMIT 1",SELECT p.name FROM products p JOIN order_items oi ON oi.product_id = p.id GROUP BY p.id ORDER BY SUM(oi.quantity) DESC LIMIT 1,False,False,query failed: no such column: o.quantity
 9,List all customers who have never placed an order.,"SELECT *
 FROM Customers
-WHERE CustomerID NOT IN (SELECT CustomerID FROM Orders)",SELECT name FROM customers WHERE id NOT IN (SELECT customer_id FROM orders),False,query failed: no such column: CustomerID,False,False
+WHERE CustomerID NOT IN (SELECT CustomerID FROM Orders)",SELECT name FROM customers WHERE id NOT IN (SELECT customer_id FROM orders),False,False,query failed: no such column: CustomerID
 10,"List the cities ordered by how many customers signed up from each, highest first.","SELECT city, COUNT(*) as num_customers
 FROM customers
 GROUP BY city
-ORDER BY num_customers DESC",SELECT city FROM customers GROUP BY city ORDER BY COUNT(*) DESC,False,"subset match (1 extra column(s)): got [('Atlanta', 4), ('Chicago', 2)]",False,True
+ORDER BY num_customers DESC",SELECT city FROM customers GROUP BY city ORDER BY COUNT(*) DESC,False,True,"subset match (1 extra column(s)): got [('Atlanta', 4), ('Chicago', 2)]"
+11,Which customer has spent the most money in total?,"SELECT customer_name, SUM(total_amount) AS total_spent
+FROM transactions
+GROUP BY customer_name
+ORDER BY total_spent DESC
+LIMIT 1",SELECT c.name FROM customers c JOIN orders o ON o.customer_id = c.id JOIN order_items oi ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id GROUP BY c.id ORDER BY SUM(p.price * oi.quantity) DESC LIMIT 1,False,False,query failed: no such table: transactions

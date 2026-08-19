@@ -41,3 +41,11 @@ WHERE o.id IS NULL",SELECT name FROM customers WHERE id NOT IN (SELECT customer_
 FROM customers
 GROUP BY city
 ORDER BY customer_count DESC",SELECT city FROM customers GROUP BY city ORDER BY COUNT(*) DESC,False,True,"subset match (1 extra column(s)): got [('Atlanta', 4), ('Chicago', 2)]"
+11,Which customer has spent the most money in total?,"SELECT c.name, SUM(oi.quantity * p.price) AS total_spent
+FROM customers c
+JOIN orders o ON c.id = o.customer_id
+JOIN order_items oi ON o.id = oi.order_id
+JOIN products p ON oi.product_id = p.id
+GROUP BY c.id, c.name
+ORDER BY total_spent DESC
+LIMIT 1",SELECT c.name FROM customers c JOIN orders o ON o.customer_id = c.id JOIN order_items oi ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id GROUP BY c.id ORDER BY SUM(p.price * oi.quantity) DESC LIMIT 1,False,True,"subset match (1 extra column(s)): got [('Farah Haddad', 648.5)]"

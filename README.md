@@ -39,13 +39,23 @@ That result is the reason this repo exists. Without measurement, `v3` ships.
 prediction *contains* the gold result but drags extra columns along — asked for
 the product name, returned `('Espresso Machine', 499.0)`.
 
-The gap between them is the whole diagnostic. `v2` scores 60% strict and 90%
-subset: three of its four failures were correct answers formatted wrong, and
+The gap between them is the whole diagnostic. `v2` scores 55% strict and 91%
+subset: **four of its five failures were correct answers formatted wrong**, and
 only **one** was a real reasoning error (it forgot `LIMIT 1` and returned every
 product instead of the top one).
 
-Those two readings imply completely different work. At 60% you go rewrite the
-prompt's reasoning guidance. At "90% with a formatting gap" you add one line
+The clearest case is Q11, "which customer has spent the most money?" — three
+joins, a `SUM(price * quantity)`, and a $5.50 margin between first and second
+place. The model got all of it right, then appended the total and scored zero on
+strict:
+
+```
+wanted:  ('Farah Haddad',)
+got:     ('Farah Haddad', 648.5)
+```
+
+Those two readings imply completely different work. At 55% you go rewrite the
+prompt's reasoning guidance. At "91% with a formatting gap" you add one line
 about returning only the requested columns, and you are near the ceiling. A
 single accuracy number hides which situation you are in.
 
@@ -82,7 +92,7 @@ Two rules keep it honest:
 
 ## The golden set is the real work
 
-`data/golden.jsonl` holds 10 questions, each with SQL written and verified by
+`data/golden.jsonl` holds 11 questions, each with SQL written and verified by
 hand. `db/verify_golden.py` checks every gold query *before* any model is
 called — and it caught two bugs in the answer key on the first run:
 
@@ -113,8 +123,8 @@ into two very different piles:
 | Missing `LIMIT 1` | returned all 6 products ranked, not the top one | Yes. Misread the question. |
 | Missing `DISTINCT` | `('Ava Patel',), ('Ava Patel',)` | Yes. Real SQL bug. |
 
-**Three of four** of `v2`'s failures are the first kind — right rows, extra
-columns — which is why its subset score is 90%. Only Q8 is a real miss.
+**Four of five** of `v2`'s failures are the first kind — right rows, extra
+columns — which is why its subset score is 91%. Only Q8 is a real miss.
 
 The contrast with `v1` is just as sharp: 6 of its 8 failures are
 `no such column` — with no schema in the prompt, it invents `total_amount`,
@@ -126,7 +136,7 @@ different failure mode.
 ```
 db/build_db.py       # builds store.db — 4 tables, ~30 rows, small enough to verify by hand
 db/verify_golden.py  # sanity-checks the answer key before any model runs
-data/golden.jsonl    # the 10 questions + hand-written gold SQL
+data/golden.jsonl    # the 11 questions + hand-written gold SQL
 prompts/*.txt        # the prompt variants being compared
 score.py             # execution accuracy — runs both queries, compares rows
 test_score.py        # tests for the grader itself
@@ -163,9 +173,13 @@ Add a prompt by dropping a `.txt` file in `prompts/` with `{schema}` and
   time.
 - **Schema is read from the database at runtime**, not pasted into the prompt,
   so it can't drift from the database the queries actually run against.
-- **10 questions is small.** One question is worth 10 percentage points, so
+- **11 questions is small.** One question is worth ~9 percentage points, so
   differences under ~20 points here aren't meaningful. Scaling the golden set is
   the next step.
+- **Adding a question can lower strict while the model does fine.** Q11 dropped
+  strict from 60% to 55% and raised subset from 90% to 91% — it wasn't harder to
+  reason about, just one more chance to format wrong. Watch both numbers or
+  you'll misread that as a regression.
 
 ## Next
 
